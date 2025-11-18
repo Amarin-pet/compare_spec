@@ -16,11 +16,12 @@ const fileToGenerativePart = async (file: File) => {
 };
 
 export const analyzeDocuments = async (referenceFile: File, analysisFile: File): Promise<ComparisonResult[]> => {
-  // FIX: Per coding guidelines, the API key must be accessed from `process.env.API_KEY`.
+  // FIX: Switched from import.meta.env.VITE_API_KEY to process.env.API_KEY to align with Gemini API guidelines and resolve TypeScript errors.
   if (!process.env.API_KEY) {
     throw new Error("API key is not configured. Please set the API_KEY environment variable.");
   }
   
+  // FIX: Switched from import.meta.env.VITE_API_KEY to process.env.API_KEY as per guidelines.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const referenceFilePart = await fileToGenerativePart(referenceFile);
@@ -81,7 +82,10 @@ export const analyzeDocuments = async (referenceFile: File, analysisFile: File):
       },
     });
 
-    const jsonText = response.text.trim();
+    const jsonText = response.text?.trim();
+    if (!jsonText) {
+      throw new Error("ไม่สามารถสื่อสารกับ AI ได้ หรือผลลัพธ์ที่ได้เป็นค่าว่าง");
+    }
     const resultData = JSON.parse(jsonText);
     return resultData as ComparisonResult[];
   } catch (error) {

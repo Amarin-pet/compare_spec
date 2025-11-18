@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import PhotoIcon from './icons/PhotoIcon';
 import DocumentIcon from './icons/DocumentIcon';
 import type { UploadedFile } from '../types';
