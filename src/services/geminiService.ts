@@ -16,9 +16,7 @@ const fileToGenerativePart = async (file: File) => {
 };
 
 export const analyzeDocuments = async (referenceFile: File, analysisFile: File): Promise<ComparisonResult[]> => {
-  // FIX: Use process.env.API_KEY as per the coding guidelines.
-  // This resolves the TypeScript error for `import.meta.env` and aligns with the requirement
-  // to assume the API key is available in the execution environment via process.env.
+  // Fix: Use process.env.API_KEY as per guidelines. This resolves the TypeScript error.
   if (!process.env.API_KEY) {
     throw new Error("API key is not configured. Please set the API_KEY environment variable.");
   }
@@ -83,11 +81,11 @@ export const analyzeDocuments = async (referenceFile: File, analysisFile: File):
       },
     });
 
-    // FIX: Use response.text directly as per guidelines. It is a non-optional string property.
-    const jsonText = response.text.trim();
-    if (!jsonText) {
+    const text = response.text;
+    if (!text) {
       throw new Error("ไม่สามารถสื่อสารกับ AI ได้ หรือผลลัพธ์ที่ได้เป็นค่าว่าง");
     }
+    const jsonText = text.trim();
     const resultData = JSON.parse(jsonText);
     return resultData as ComparisonResult[];
   } catch (error) {
