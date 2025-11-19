@@ -1,5 +1,13 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { ComparisonResult } from '../types';
+
+// Declare process to fix "Cannot find name 'process'" error for TypeScript
+declare const process: {
+  env: {
+    API_KEY: string | undefined;
+  }
+};
 
 const fileToGenerativePart = async (file: File) => {
   const base64EncodedData = await new Promise<string>((resolve) => {
@@ -16,7 +24,7 @@ const fileToGenerativePart = async (file: File) => {
 };
 
 export const analyzeDocuments = async (referenceFile: File, analysisFile: File): Promise<ComparisonResult[]> => {
-  // Fix: Use process.env.API_KEY as per guidelines. This resolves the TypeScript error.
+  // The API key is injected by Vite's `define` config during build
   if (!process.env.API_KEY) {
     throw new Error("API key is not configured. Please set the API_KEY environment variable.");
   }

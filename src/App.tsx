@@ -1,6 +1,8 @@
+
 import React, { useState, useCallback } from 'react';
 import { ComparisonResult, UploadedFile } from './types';
 import { analyzeDocuments } from './services/geminiService';
+import { saveAnalysisResultToSupabase } from './services/supabaseService';
 import FileUpload from './components/FileUpload';
 import ResultTable from './components/ResultTable';
 
@@ -10,6 +12,7 @@ const App: React.FC = () => {
   const [comparisonResult, setComparisonResult] = useState<ComparisonResult[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const handleAnalyze = useCallback(async () => {
     if (!referenceFile || !analysisFile) {
@@ -22,8 +25,19 @@ const App: React.FC = () => {
     setComparisonResult(null);
 
     try {
+      // 1. เรียกใช้ Gemini API
       const results = await analyzeDocuments(referenceFile.file, analysisFile.file);
       setComparisonResult(results);
+
+      // 2. บันทึกลง Supabase (ทำเป็น background process หรือรอให้เสร็จก็ได้)
+      setIsSaving(true);
+      await saveAnalysisResultToSupabase(
+        referenceFile.file.name,
+        analysisFile.file.name,
+        results
+      );
+      setIsSaving(false);
+
     } catch (err: any) {
       setError(err.message || 'เกิดข้อผิดพลาดในการวิเคราะห์');
       console.error(err);
@@ -92,7 +106,9 @@ const App: React.FC = () => {
           {isLoading && (
             <div className="flex flex-col items-center justify-center text-center p-8 bg-gray-800/50 rounded-lg">
               <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-sky-400 mb-4"></div>
-              <p className="text-lg text-gray-300">AI กำลังวิเคราะห์ข้อมูล... กรุณารอสักครู่</p>
+              <p className="text-lg text-gray-300">
+                {isSaving ? 'กำลังบันทึกข้อมูล...' : 'AI กำลังวิเคราะห์ข้อมูล... กรุณารอสักครู่'}
+              </p>
             </div>
           )}
 
@@ -103,7 +119,7 @@ const App: React.FC = () => {
         
         <footer className="text-center mt-auto pt-8 pb-4">
           <p className="text-sm text-gray-500">
-            ขับเคลื่อนโดย Gemini API
+            ขับเคลื่อนโดย Gemini API และเก็บข้อมูลด้วย Supabase
           </p>
         </footer>
       </div>
